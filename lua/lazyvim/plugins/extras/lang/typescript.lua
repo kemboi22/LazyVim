@@ -171,34 +171,7 @@ return {
             resolve("vtsls")
           end
 
-          LazyVim.lsp.on_attach(function(client, buffer)
-            -- Auto-organize imports and remove unused on save
-            if client.name == "vtsls" then
-              local ts_group = vim.api.nvim_create_augroup("TypeScriptAutoFix", { clear = true })
-
-              vim.api.nvim_create_autocmd("BufWritePre", {
-                group = ts_group,
-                buffer = buffer,
-                callback = function()
-                  -- Remove unused imports
-                  vim.lsp.buf.code_action({
-                    apply = true,
-                    filter = function(action)
-                      return action.kind == "source.removeUnused.ts"
-                    end,
-                  })
-
-                  -- Organize imports
-                  vim.lsp.buf.code_action({
-                    apply = true,
-                    filter = function(action)
-                      return action.kind == "source.organizeImports"
-                    end,
-                  })
-                end,
-              })
-            end
-
+          Snacks.util.lsp.on({ name = "vtsls" }, function(buffer, client)
             client.commands["_typescript.moveToFileRefactoring"] = function(command, ctx)
               ---@type string, string, lsp.Range
               local action, uri, range = unpack(command.arguments)
@@ -247,7 +220,7 @@ return {
                 end)
               end)
             end
-          end, "vtsls")
+          end)
           -- copy typescript settings to javascript
           opts.settings.javascript =
             vim.tbl_deep_extend("force", {}, opts.settings.typescript, opts.settings.javascript or {})
